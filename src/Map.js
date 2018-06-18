@@ -1,8 +1,22 @@
 import React, { Component } from 'react';
 
 var google=window.google, 
-    map;
-    
+    map,
+    largeInfoWindow,
+    bounds,
+    highlightedMarker=null;
+
+function populateInfoWindow (marker, infoWindow) {
+	if (infoWindow.marker !== marker) {
+		infoWindow.marker = marker;
+		infoWindow.setContent('<div>'+marker.title+'</div>');
+		infoWindow.open(map,marker);
+
+		infoWindow.addListener('closeclick', function() {
+			infoWindow.marker=null;
+		});
+	}
+}
 
 class Map extends Component {
 	state={
@@ -27,8 +41,8 @@ class Map extends Component {
 	}
 
 	markersMaker() {
-		var largeInfoWindow= new google.maps.InfoWindow();
-		var bounds= new google.maps.LatLngBounds();
+		largeInfoWindow= new google.maps.InfoWindow();
+		bounds= new google.maps.LatLngBounds();
 
 		if(this.state.filteredLocations.length === 0){
 			this.state.locations.map((location)=> {
@@ -65,22 +79,10 @@ class Map extends Component {
 				});			
 			});
 		}
-		
-
-		function populateInfoWindow (marker, infoWindow) {
-			if (infoWindow.marker !== marker) {
-				infoWindow.marker = marker;
-				infoWindow.setContent('<div>'+marker.title+'</div>');
-				infoWindow.open(map,marker);
-
-				infoWindow.addListener('closeclick', function() {
-					infoWindow.marker=null;
-				});
-			}
-		}
-
 		map.fitBounds(bounds);
 	}
+
+	
 
 	filterLocations(location) {		
 		this.setState(state=>({
@@ -90,6 +92,24 @@ class Map extends Component {
 			markers: state.markers.filter((m)=> m.id === location)			
 		}))
 	}
+
+	resetFilters() {
+		this.setState(state=>({
+			filteredLocations: []
+		}))
+	}
+
+	handleClick(event) {		
+		this.state.markers.map((marker)=>{			
+			if(marker.title === event.textContent) {
+				marker.setAnimation(google.maps.Animation.BOUNCE);
+				populateInfoWindow(marker, largeInfoWindow);			
+			} else {
+				marker.setAnimation(google.maps.Animation.DROP);
+			}			
+		});
+	}
+
 
 	
 
@@ -109,11 +129,12 @@ class Map extends Component {
 					<option value='Primaria Oradea'>Primaria Oradea</option>
 					<option value='Zoo'>Zoo</option>
 				</select>
+				<button id='resetFilters' onClick={()=>this.resetFilters()}>Reset</button>
 				<ul id='listedLocations'>
 					{filteredLocations.length > 0 && (
 						<div>
 							{filteredLocations.map((location) => (
-								<li key={location.title}>{location.title}</li>
+								<li key={location.title} onClick={(e)=>this.handleClick(e.target)}>{location.title}</li>
 							))}
 						</div>
 						
@@ -121,7 +142,7 @@ class Map extends Component {
 					{filteredLocations.length === 0 && (
 						<div>
 							{allLocations.map((location) => (
-								<li key={location.title}>{location.title}</li>
+								<li key={location.title} onClick={(e)=>this.handleClick(e.target)}>{location.title}</li>
 							))}
 						</div>
 					)}
