@@ -27,3 +27,34 @@
   to { transform: rotate(360deg); }
 }
 
+body {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+
+#filterMenu {
+  width: 20vw;
+  height: 100vh;
+  background-color: #A9A9A9;
+  margin-top:-20px;
+}
+
+#searchField {
+  width: 68%;
+}
+
+#filterButton{
+  width: 30%;
+}
+
+#map {
+  width: 79vw;
+  height: 100vh;
+}
+
+#listedLocations li{
+  list-style: none;
+  padding: 7px;
+}
+

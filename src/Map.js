@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 
-var markers=[], 
-    google=window.google, 
+var google=window.google, 
     map;
+    
 
 class Map extends Component {
 	state={
@@ -12,7 +12,9 @@ class Map extends Component {
 			{title:'Primaria Oradea', location:{lat:47.0559162, lng:21.9274467}}, 
 			{title:'Biblioteca Judeteana', location:{lat:47.0489117, lng:21.9216187}}, 
 			{title:'Parcul Balcescu' , location:{lat:47.0510173, lng:21.9235386}} 
-		]
+		],
+		filteredLocations:[],
+		markers:[]
 	}
 
 	initMap () {
@@ -28,22 +30,42 @@ class Map extends Component {
 		var largeInfoWindow= new google.maps.InfoWindow();
 		var bounds= new google.maps.LatLngBounds();
 
-		this.state.locations.map((location)=> {
-			var position= location.location;
-			var title=location.title;
-			var marker= new google.maps.Marker({
-				map:map,
-				position:position,
-				title:title,
-				animation:google.maps.Animation.DROP,
-				id: location.title
+		if(this.state.filteredLocations.length === 0){
+			this.state.locations.map((location)=> {
+				var position= location.location;
+				var title=location.title;
+				var marker= new google.maps.Marker({
+					map:map,
+					position:position,
+					title:title,
+					animation:google.maps.Animation.DROP,
+					id: location.title
+				});
+				this.state.markers.push(marker);
+				bounds.extend(marker.position);
+				marker.addListener('click', function() {
+					populateInfoWindow(this, largeInfoWindow);
+				});			
 			});
-			markers.push(marker);
-			bounds.extend(marker.position);
-			marker.addListener('click', function() {
-				populateInfoWindow(this, largeInfoWindow);
-			});			
-		});
+		} else {
+			this.state.filteredLocations.map((location)=> {
+				var position= location.location;
+				var title=location.title;
+				var marker= new google.maps.Marker({
+					map:map,
+					position:position,
+					title:title,
+					animation:google.maps.Animation.DROP,
+					id: location.title
+				});
+				this.state.markers.push(marker);
+				bounds.extend(marker.position);
+				marker.addListener('click', function() {
+					populateInfoWindow(this, largeInfoWindow);
+				});			
+			});
+		}
+		
 
 		function populateInfoWindow (marker, infoWindow) {
 			if (infoWindow.marker !== marker) {
@@ -60,12 +82,52 @@ class Map extends Component {
 		map.fitBounds(bounds);
 	}
 
+	filterLocations(location) {		
+		this.setState(state=>({
+			filteredLocations: state.locations.filter((l) => l.title === location)			
+		}))
+		this.setState(state=>({
+			markers: state.markers.filter((m)=> m.id === location)			
+		}))
+	}
+
 	
 
 	render() {
 		this.initMap();
+
+		var filteredLocations=this.state.filteredLocations;
+    	var allLocations=this.state.locations;
 		return (
-			<div>I am here</div>
+			<div id='filterMenu'>
+				<h2>Oradea Locations</h2>
+				<select id='searchField' onChange={(e) => 
+					this.filterLocations(e.target.value)}>
+					<option value='Biblioteca Judeteana'>Biblioteca Judeteana</option>
+					<option value='Campus Universitar'>Campus Universitar</option>
+					<option value='Parcul Balcescu'>Parcul Balcescu</option>
+					<option value='Primaria Oradea'>Primaria Oradea</option>
+					<option value='Zoo'>Zoo</option>
+				</select>
+				<ul id='listedLocations'>
+					{filteredLocations.length > 0 && (
+						<div>
+							{filteredLocations.map((location) => (
+								<li key={location.title}>{location.title}</li>
+							))}
+						</div>
+						
+					)}
+					{filteredLocations.length === 0 && (
+						<div>
+							{allLocations.map((location) => (
+								<li key={location.title}>{location.title}</li>
+							))}
+						</div>
+					)}
+					
+				</ul>
+			</div>	
 		);
 	}
 	
