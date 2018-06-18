@@ -8,9 +8,10 @@
       manifest.json provides metadata used when your web app is added to the
       homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
     -->
-    <link rel="stylesheet" href='styles.css'>
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
     <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+    <link rel="stylesheet" href='styles.css'>
+    
     <!--
       Notice the use of %PUBLIC_URL% in the tags above.
       It will be replaced with the URL of the `public` folder during the build.
@@ -27,7 +28,7 @@
     <noscript>
       You need to enable JavaScript to run this app.
     </noscript>
-    <div id='map' style='width:90vw; height:90vh'></div>
+    <!-- <div id='map'></div>
     <script>
       var map;
       function initMap () {
@@ -36,8 +37,9 @@
           zoom: 13
         });
       }
-    </script>
+    </script> -->
     <div id="root"></div>
+    <div id='map'></div>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
@@ -48,6 +50,7 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->  
-    <script async defer src='https://maps.googleapis.com/maps/api/js?key=AIzaSyDq3SNkJ763OHorapaGdrvFyekXBb64150&v=3&callback=initMap'>  
+    <!-- <script async defer src='https://maps.googleapis.com/maps/api/js?key=AIzaSyDq3SNkJ763OHorapaGdrvFyekXBb64150&v=3&callback=initMap'>   -->.
+    <script async defer src='https://maps.googleapis.com/maps/api/js?key=AIzaSyDq3SNkJ763OHorapaGdrvFyekXBb64150&v=3'></script>
   </body>
 </html>
