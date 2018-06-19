@@ -58,3 +58,56 @@ body {
   padding: 7px;
 }
 
+#hamburgerMenu div{
+  width: 30px;
+  height: 5px;
+  background-color: black;
+  margin: 4px 0;
+}
+
+#hamburgerMenu {
+  display: none;
+}
+
+#closeButton {
+  display: none;
+}
+
+@media screen and (max-width: 450px) {
+  #hamburgerMenu {
+    display: block;
+    float: left;
+    height: 15px;
+    position: relative;
+    margin-top: 0;
+  }
+
+  #filterMenu {
+    display: none;
+  }
+
+  #filterMenu.open {
+    float: none;
+    display: block;
+    position: absolute;
+    text-align: left;
+    margin-top: 30px;
+    left: 0;
+    z-index: 175;
+    width: 50vw;
+    opacity: 0.9;
+  }
+
+  #map {
+    position: relative;
+  }
+
+  #closeButton {
+    display: block;
+    float: right;
+    background-color: #A9A9A9;
+    font-size: 12px;
+
+  }
+}
+
