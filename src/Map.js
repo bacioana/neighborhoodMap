@@ -1,10 +1,10 @@
+ /* global google */
 import React, { Component } from 'react';
 
-var google=window.google, 
-    map,
+var google,
+	map,
     largeInfoWindow,
-    bounds,
-    highlightedMarker=null;
+    bounds;
 
 function populateInfoWindow (marker, infoWindow) {
 	if (infoWindow.marker !== marker) {
@@ -31,14 +31,28 @@ class Map extends Component {
 		markers:[]
 	}
 
-	initMap () {
+	componentDidMount () {
+		fetch('https://maps.googleapis.com/maps/api/js?key=AIzaSyDq3SNkJ763OHorapaGdrvFyekXBb64150&v=3', {
+			method: 'GET',
+			headers: {
+		     "Access-Control-Allow-Origin": '*',
+		     "Access-Control-Allow-Methods": 'GET'
+		   }
+		}).then(response=>console.log(response))
+		.catch(err=>this.handleError(err));
+	}
+
+  	handleError (error) {
+  		console.log(error);
+  	}
+
+ 	initMap () { 		
 		map= new google.maps.Map(document.getElementById('map'), {
 		  center: {lat: 47.04650050000001, lng: 21.9189438},
 		  zoom: 15
-		}); 
+		});		
 		this.markersMaker();
-		  
-	}
+  	}
 
 	markersMaker() {
 		largeInfoWindow= new google.maps.InfoWindow();
@@ -128,7 +142,6 @@ class Map extends Component {
 	
 
 	render() {
-		this.initMap();
 
 		var filteredLocations=this.state.filteredLocations;
     	var allLocations=this.state.locations;
