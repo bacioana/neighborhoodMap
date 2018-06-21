@@ -78,22 +78,20 @@ class Map extends Component {
 			animation: google.Animation.DROP,
 			id: location.title
 		});
-
+		// fetch informations from wikipedia about this location
 		fetch('https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord='+lat+'|'+long+'&gsradius=10000&gslimit=10&format=json&formatversion=2&origin=*', {
 			method: 'GET',
 			dataType: 'json; charset=utf-8'			
 			}).then(data=>data.json()).then(data=>data.query.geosearch).then((data)=>{
-				console.log(data[0].title);
 				if(data.length>0) {
 					marker.wikiTitle=data[0].title;
 				}
 			})
 
 		this.state.markers.push(marker);		
-		bounds.extend(marker.position);		
-
+		bounds.extend(marker.position);	
 		marker.addListener('click', function() {
-			populateInfoWindow(marker, largeInfoWindow);
+			populateInfoWindow(marker, largeInfoWindow);		
 		});	
   	}
 
@@ -113,9 +111,9 @@ class Map extends Component {
 		map.fitBounds(bounds);
 	}		
 
-	filterLocations(location) {		
+	filterLocations(location) {	
 		this.setState(state=>({
-			filteredLocations: state.locations.filter((l) => l.title === location)						
+			filteredLocations: state.locations.filter((l) => l.title === location)									
 		}))
 
 	}
@@ -124,6 +122,9 @@ class Map extends Component {
 		this.setState(state=>({
 			filteredLocations: []
 		}))
+		this.state.markers.map((marker)=>{				
+			marker.setAnimation(google.Animation.DROP);	
+		})
 	}
 
 	handleClick(event) {
