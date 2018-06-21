@@ -1,7 +1,6 @@
- /* global google */
-import React, { Component } from 'react';
+import React, { Component } from 'react'
 
-var google,
+var google=window.google,
 	map,
     largeInfoWindow,
     bounds;
@@ -28,29 +27,36 @@ class Map extends Component {
 			{title:'Parcul Balcescu', address: 'strada Sucevei, nr. 79', location:{lat:47.0510173, lng:21.9235386}} 
 		],
 		filteredLocations:[],
-		markers:[]
+		markers:[],
+		data:{}
 	}
 
 	componentDidMount () {
-		fetch('https://maps.googleapis.com/maps/api/js?key=AIzaSyDq3SNkJ763OHorapaGdrvFyekXBb64150&v=3', {
+		fetch('https://maps.googleapis.com/maps/api/js?key=AIzaSyDq3SNkJ763OHorapaGdrvFyekXBb64150&v=3&sensor=true', {
 			method: 'GET',
+			mode:'no-cors',
 			headers: {
-		     "Access-Control-Allow-Origin": '*',
-		     "Access-Control-Allow-Methods": 'GET'
+				"Access-Control-Allow-Origin": '*',
+				"Access-Control-Allow-Methods": 'GET',
+				'Accept': 'application/json'
 		   }
-		}).then(response=>console.log(response))
-		.catch(err=>this.handleError(err));
+		}).then(res => {
+			this.setState({data:res})
+		}).then(this.initMap)
+		.catch(err=>this.handleError(err))
 	}
 
   	handleError (error) {
   		console.log(error);
   	}
 
- 	initMap () { 		
+ 	initMap () { 
+ 		
 		map= new google.maps.Map(document.getElementById('map'), {
 		  center: {lat: 47.04650050000001, lng: 21.9189438},
 		  zoom: 15
-		});		
+		});	
+
 		this.markersMaker();
   	}
 
@@ -136,13 +142,9 @@ class Map extends Component {
 	closeHamburgerMenu () {
 		var menu= document.getElementById('filterMenu');
 		menu.classList.remove('open');
-	}
-
-
-	
+	}	
 
 	render() {
-
 		var filteredLocations=this.state.filteredLocations;
     	var allLocations=this.state.locations;
 		return (
