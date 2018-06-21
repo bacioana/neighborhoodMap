@@ -1,21 +1,21 @@
 import React, { Component } from 'react'
 
-var google=window.google,
+var google,
 	map,
     largeInfoWindow,
     bounds;
 
-function populateInfoWindow (marker, infoWindow) {
-	if (infoWindow.marker !== marker) {
-		infoWindow.marker = marker;
-		infoWindow.setContent('<div>'+marker.title+'</div>'+'<div>'+marker.address+'</div>');
-		infoWindow.open(map,marker);
+    function populateInfoWindow (marker, infoWindow) {
+		if (infoWindow.marker !== marker) {
+			infoWindow.marker = marker;
+			infoWindow.setContent('<div>'+marker.title+'</div>'+'<div>'+marker.address+'</div>');
+			infoWindow.open(map,marker);
 
-		infoWindow.addListener('closeclick', function() {
-			infoWindow.marker=null;
-		});
+			infoWindow.addListener('closeclick', function() {
+				infoWindow.marker=null;
+			});
+		}
 	}
-}
 
 class Map extends Component {
 	state= {
@@ -27,60 +27,54 @@ class Map extends Component {
 			{title:'Parcul Balcescu', address: 'strada Sucevei, nr. 79', location:{lat:47.0510173, lng:21.9235386}} 
 		],
 		filteredLocations:[],
-		markers:[],
-		data:{}
+		markers:[]
 	}
 
 	componentDidMount () {
-		fetch('https://maps.googleapis.com/maps/api/js?key=AIzaSyDq3SNkJ763OHorapaGdrvFyekXBb64150&v=3&sensor=true', {
-			method: 'GET',
-			mode:'no-cors',
-			headers: {
-				"Access-Control-Allow-Origin": '*',
-				"Access-Control-Allow-Methods": 'GET',
-				'Accept': 'application/json'
-		   }
-		}).then(res => {
-			this.setState({data:res})
-		}).then(this.initMap)
-		.catch(err=>this.handleError(err))
+		const fetchGoogleMaps= require('fetch-google-maps');
+		fetchGoogleMaps({
+			apiKey: 'AIzaSyDq3SNkJ763OHorapaGdrvFyekXBb64150',
+			language: 'en',
+			libraries: ['geometry']
+		}).then((maps) => {
+			map= new maps.Map(document.getElementById('map'), {
+			  center: {lat: 47.04650050000001, lng: 21.9189438},
+			  zoom: 15
+			});	
+			this.initMap(map,maps);
+		}).catch(err=>this.handleError(err))
 	}
 
   	handleError (error) {
   		console.log(error);
   	}
 
- 	initMap () { 
- 		
-		map= new google.maps.Map(document.getElementById('map'), {
-		  center: {lat: 47.04650050000001, lng: 21.9189438},
-		  zoom: 15
-		});	
-
+ 	initMap (map,maps) { 
+ 		google = maps;
 		this.markersMaker();
   	}
 
 	markersMaker() {
-		largeInfoWindow= new google.maps.InfoWindow();
-		bounds= new google.maps.LatLngBounds();
+		largeInfoWindow= new google.InfoWindow();
+		bounds= new google.LatLngBounds();
 
 		if(this.state.filteredLocations.length === 0){
 			this.state.locations.map((location)=> {
 				var position= location.location;
 				var title= location.title;
 				var address= location.address;
-				var marker= new google.maps.Marker({
+				var marker= new google.Marker({
 					map: map,
 					position: position,
 					title: title,
 					address: address,
-					animation: google.maps.Animation.DROP,
+					animation: google.Animation.DROP,
 					id: location.title
 				});
 				this.state.markers.push(marker);
 				bounds.extend(marker.position);
 				marker.addListener('click', function() {
-					populateInfoWindow(this, largeInfoWindow);
+					populateInfoWindow(marker, largeInfoWindow);
 				});			
 			});
 		} else {
@@ -88,33 +82,31 @@ class Map extends Component {
 				var position= location.location;
 				var title= location.title;
 				var address= location.address;
-				var marker= new google.maps.Marker({
+				var marker= new google.Marker({
 					map: map,
 					position: position,
 					title: title,
 					address: address,
-					animation: google.maps.Animation.DROP,
+					animation: google.Animation.DROP,
 					id: location.title
 				});
 				this.state.markers.push(marker);
 				bounds.extend(marker.position);
 				marker.addListener('click', function() {
-					populateInfoWindow(this, largeInfoWindow);
+					populateInfoWindow(marker, largeInfoWindow);
 				});			
 			});
 		}
 		map.fitBounds(bounds);
 	}
 
-	
+		
 
 	filterLocations(location) {		
 		this.setState(state=>({
-			filteredLocations: state.locations.filter((l) => l.title === location)			
+			filteredLocations: state.locations.filter((l) => l.title === location)						
 		}))
-		this.setState(state=>({
-			markers: state.markers.filter((m)=> m.id === location)			
-		}))
+
 	}
 
 	resetFilters() {
@@ -123,15 +115,15 @@ class Map extends Component {
 		}))
 	}
 
-	handleClick(event) {		
-		this.state.markers.map((marker)=>{			
+	handleClick(event) {
+		this.state.markers.map((marker)=>{		
 			if(marker.title === event.textContent) {
-				marker.setAnimation(google.maps.Animation.BOUNCE);
+				marker.setAnimation(google.Animation.BOUNCE);
 				populateInfoWindow(marker, largeInfoWindow);			
 			} else {
-				marker.setAnimation(google.maps.Animation.DROP);
+				marker.setAnimation(google.Animation.DROP);
 			}			
-		});
+		})
 	}
 
 	hamburgerMenuClick (e) {
