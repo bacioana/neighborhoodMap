@@ -5,17 +5,26 @@ var google,
     largeInfoWindow,
     bounds;
 
-    function populateInfoWindow (marker, infoWindow) {
-		if (infoWindow.marker !== marker) {
-			infoWindow.marker = marker;
-			infoWindow.setContent('<div>'+marker.title+'</div>'+'<div>'+marker.address+'</div>');
-			infoWindow.open(map,marker);
+function populateInfoWindow (marker, infoWindow) {
 
-			infoWindow.addListener('closeclick', function() {
-				infoWindow.marker=null;
-			});
+	if (infoWindow.marker !== marker) {
+		infoWindow.marker = marker;
+		var title='';
+		if(marker.wikiTitle.length>0) {
+			title=marker.wikiTitle;
+			infoWindow.setContent(`<div>${title}</div><div>Info by Wikipedia</div>`);
+		} else {
+			title=marker.title;
+			infoWindow.setContent(`<div>${title}</div><div>${marker.address}</div>`);
 		}
+		
+		infoWindow.open(map,marker);
+
+		infoWindow.addListener('closeclick', function() {
+			infoWindow.marker=null;
+		});
 	}
+}
 
 class Map extends Component {
 	state= {
@@ -42,16 +51,50 @@ class Map extends Component {
 			  zoom: 15
 			});	
 			this.initMap(map,maps);
-		}).catch(err=>this.handleError(err))
+		}).catch(err=>this.handleError(err))		
 	}
 
   	handleError (error) {
-  		console.log(error);
+  		const errorHTML='<span>An error occured while loading the map.</span>';
+  		document.getElementByTagName('body').insertAdjacentHTML(errorHTML);
   	}
 
  	initMap (map,maps) { 
  		google = maps;
 		this.markersMaker();
+  	}
+
+  	makeMarkerVariables(location) {
+  		var position= location.location;
+		var title= location.title;
+		var address= location.address;
+		var lat=location.location.lat;
+		var long= location.location.lng;
+		var marker= new google.Marker({
+			map: map,
+			position: position,
+			title: title,
+			address: address,
+			animation: google.Animation.DROP,
+			id: location.title
+		});
+
+		fetch('https://en.wikipedia.org/w/api.php?action=query&list=geosearch&gscoord='+lat+'|'+long+'&gsradius=10000&gslimit=10&format=json&formatversion=2&origin=*', {
+			method: 'GET',
+			dataType: 'json; charset=utf-8'			
+			}).then(data=>data.json()).then(data=>data.query.geosearch).then((data)=>{
+				console.log(data[0].title);
+				if(data.length>0) {
+					marker.wikiTitle=data[0].title;
+				}
+			})
+
+		this.state.markers.push(marker);		
+		bounds.extend(marker.position);		
+
+		marker.addListener('click', function() {
+			populateInfoWindow(marker, largeInfoWindow);
+		});	
   	}
 
 	markersMaker() {
@@ -60,47 +103,15 @@ class Map extends Component {
 
 		if(this.state.filteredLocations.length === 0){
 			this.state.locations.map((location)=> {
-				var position= location.location;
-				var title= location.title;
-				var address= location.address;
-				var marker= new google.Marker({
-					map: map,
-					position: position,
-					title: title,
-					address: address,
-					animation: google.Animation.DROP,
-					id: location.title
-				});
-				this.state.markers.push(marker);
-				bounds.extend(marker.position);
-				marker.addListener('click', function() {
-					populateInfoWindow(marker, largeInfoWindow);
-				});			
+				this.makeMarkerVariables(location);		
 			});
 		} else {
 			this.state.filteredLocations.map((location)=> {
-				var position= location.location;
-				var title= location.title;
-				var address= location.address;
-				var marker= new google.Marker({
-					map: map,
-					position: position,
-					title: title,
-					address: address,
-					animation: google.Animation.DROP,
-					id: location.title
-				});
-				this.state.markers.push(marker);
-				bounds.extend(marker.position);
-				marker.addListener('click', function() {
-					populateInfoWindow(marker, largeInfoWindow);
-				});			
+				this.makeMarkerVariables(location);		
 			});
 		}
 		map.fitBounds(bounds);
-	}
-
-		
+	}		
 
 	filterLocations(location) {		
 		this.setState(state=>({
@@ -120,7 +131,7 @@ class Map extends Component {
 			if(marker.title === event.textContent) {
 				marker.setAnimation(google.Animation.BOUNCE);
 				populateInfoWindow(marker, largeInfoWindow);			
-			} else {
+			} else if(marker.animation === google.Animation.BOUNCE){
 				marker.setAnimation(google.Animation.DROP);
 			}			
 		})
@@ -137,8 +148,6 @@ class Map extends Component {
 	}	
 
 	render() {
-		var filteredLocations=this.state.filteredLocations;
-    	var allLocations=this.state.locations;
 		return (
 			<div>
 				<div id='hamburgerMenu' onClick={(e)=>this.hamburgerMenuClick(e)}>
@@ -159,22 +168,21 @@ class Map extends Component {
 					</select>
 					<button id='resetFilters' onClick={()=>this.resetFilters()}>Reset</button>
 					<ul id='listedLocations'>
-						{filteredLocations.length > 0 && (
+						{this.state.filteredLocations.length > 0 && (
 							<div>
-								{filteredLocations.map((location) => (
+								{this.state.filteredLocations.map((location) => (
 									<li key={location.title} onClick={(e)=>this.handleClick(e.target)}>{location.title}</li>
 								))}
 							</div>
 							
 						)}
-						{filteredLocations.length === 0 && (
+						{this.state.filteredLocations.length === 0 && (
 							<div>
-								{allLocations.map((location) => (
+								{this.state.locations.map((location) => (
 									<li key={location.title} onClick={(e)=>this.handleClick(e.target)}>{location.title}</li>
 								))}
 							</div>
-						)}
-						
+						)}						
 					</ul>
 				</div>	
 			</div>
