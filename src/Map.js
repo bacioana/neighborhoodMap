@@ -51,12 +51,15 @@ class Map extends Component {
 			  zoom: 15
 			});	
 			this.initMap(map,maps);
-		}).catch(err=>this.handleError(err))		
+		}).catch(err=>window.gm_authFailure = this.gm_authFailure(err))		
+	}
+
+	gm_authFailure(){
+	    window.alert("Google Maps error!");
 	}
 
   	handleError (error) {
-  		const errorHTML='<span>An error occured while loading the map.</span>';
-  		document.getElementByTagName('body').insertAdjacentHTML(errorHTML);
+  		window.alert('We\'re sorry. This information is unavailable for now.');
   	}
 
  	initMap (map,maps) { 
@@ -86,7 +89,7 @@ class Map extends Component {
 				if(data.length>0) {
 					marker.wikiTitle=data[0].title;
 				}
-			})
+			}).catch(err=>this.handleError(err));
 
 		this.state.markers.push(marker);		
 		bounds.extend(marker.position);	
@@ -148,18 +151,31 @@ class Map extends Component {
 		menu.classList.remove('open');
 	}	
 
+	handleKeyboardEvent (key, target) {
+		if(key === 'Enter') {
+			this.state.markers.map((marker)=>{		
+				if(marker.title === target.textContent) {
+					marker.setAnimation(google.Animation.BOUNCE);
+					populateInfoWindow(marker, largeInfoWindow);			
+				} else if(marker.animation === google.Animation.BOUNCE){
+					marker.setAnimation(google.Animation.DROP);
+				}			
+			})
+		}
+	}
+
 	render() {
 		return (
 			<div>
-				<div id='hamburgerMenu' onClick={(e)=>this.hamburgerMenuClick(e)}>
+				<div id='hamburgerMenu' tabIndex='0' role="navigation" onClick={(e)=>this.hamburgerMenuClick(e)}>
 					<div></div>
 					<div></div>
 					<div></div>
 				</div>
 				<div id='filterMenu'>
-					<button id='closeButton' onClick={(e)=>this.closeHamburgerMenu(e)}>X</button>
+					<button id='closeButton' tabIndex='0' onClick={(e)=>this.closeHamburgerMenu(e)}>X</button>
 					<h2>Oradea Locations</h2>
-					<select id='searchField' onChange={(e) => 
+					<select id='searchField' tabIndex='0' onChange={(e) => 
 						this.filterLocations(e.target.value)}>
 						<option value='Biblioteca Judeteana'>Biblioteca Judeteana</option>
 						<option value='Campus Universitar'>Campus Universitar</option>
@@ -167,12 +183,13 @@ class Map extends Component {
 						<option value='Primaria Oradea'>Primaria Oradea</option>
 						<option value='Zoo'>Zoo</option>
 					</select>
-					<button id='resetFilters' onClick={()=>this.resetFilters()}>Reset</button>
+					<button id='resetFilters' tabIndex='0' onClick={()=>this.resetFilters()}>Reset</button>
 					<ul id='listedLocations'>
 						{this.state.filteredLocations.length > 0 && (
 							<div>
 								{this.state.filteredLocations.map((location) => (
-									<li key={location.title} onClick={(e)=>this.handleClick(e.target)}>{location.title}</li>
+									<li key={location.title} tabIndex='0' role="button" onClick={(e)=>this.handleClick(e.target)} 
+									onKeyDown={(e)=>this.handleKeyboardEvent(e.key,e.target)}>{location.title}</li>
 								))}
 							</div>
 							
@@ -180,7 +197,8 @@ class Map extends Component {
 						{this.state.filteredLocations.length === 0 && (
 							<div>
 								{this.state.locations.map((location) => (
-									<li key={location.title} onClick={(e)=>this.handleClick(e.target)}>{location.title}</li>
+									<li key={location.title} tabIndex='0' role="button" onClick={(e)=>this.handleClick(e.target)}
+									onKeyDown={(e)=>this.handleKeyboardEvent(e.key,e.target)}>{location.title}</li>
 								))}
 							</div>
 						)}						
